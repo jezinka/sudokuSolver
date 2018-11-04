@@ -15,9 +15,17 @@ class Board {
 
     Board(Integer[][] input = sample) {
         board = new Cell[input.length][input[0].length]
-        for (int i = 0; i < input.length; i++) {
-            for (int j = 0; j < input[i].length; j++) {
-                board[i][j] = new Cell(value: input[i][j])
+        (0..<input.length).each { i ->
+            (0..<input[0].length).each { j ->
+                board[i][j] = new Cell(input[i][j])
+            }
+        }
+
+        (0..<input.length).each { i ->
+            (0..<input[0].length).each { j ->
+                if (!input[i][j]) {
+                    removeKnownValuesFromCandidates(i, j)
+                }
             }
         }
     }
@@ -54,6 +62,12 @@ class Board {
                 .collect { row -> row.findAll { cell -> cell.value == 0 } }
                 .flatten()
                 .collect { it as Cell }
+    }
+
+    void removeKnownValuesFromCandidates(int i, int j) {
+        board[i][j].candidates -= getValuesForSquare(i, j)
+        board[i][j].candidates -= getValuesForRecord(i)
+        board[i][j].candidates -= getValuesForColumn(j)
     }
 
     @Override

@@ -20,14 +20,6 @@ class Board {
                 board[i][j] = new Cell(input[i][j])
             }
         }
-
-        (0..<input.length).each { i ->
-            (0..<input[0].length).each { j ->
-                if (!input[i][j]) {
-                    removeKnownValuesFromCandidates(i, j)
-                }
-            }
-        }
     }
 
     Cell[] getRecord(int rowNum) { return board[rowNum] }
@@ -57,17 +49,19 @@ class Board {
         return getSquare(rowNum, colNum)*.value.flatten().findAll().collect { it as Integer }
     }
 
+    List<Integer> getKnownValuesFromNeighborhood(int rowNum, int colNum) {
+        List<Integer> knownValues = []
+        knownValues.addAll(getValuesForSquare(rowNum, colNum))
+        knownValues.addAll(getValuesForRecord(rowNum))
+        knownValues.addAll(getValuesForColumn(colNum))
+        return knownValues.unique()
+    }
+
     List<Cell> getEmptyCells() {
         return this.board
                 .collect { row -> row.findAll { cell -> cell.value == 0 } }
                 .flatten()
                 .collect { it as Cell }
-    }
-
-    void removeKnownValuesFromCandidates(int i, int j) {
-        board[i][j].candidates -= getValuesForSquare(i, j)
-        board[i][j].candidates -= getValuesForRecord(i)
-        board[i][j].candidates -= getValuesForColumn(j)
     }
 
     @Override

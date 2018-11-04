@@ -6,7 +6,12 @@ class Cell {
 
     Cell(int value) {
         this.value = value
-        this.candidates = value ? [] : (1..9)
+        this.candidates = []
+    }
+
+    void setValue(int value) {
+        this.value = value
+        this.candidates = []
     }
 
     @Override

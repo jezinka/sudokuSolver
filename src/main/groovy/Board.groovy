@@ -17,14 +17,22 @@ class Board {
         board = new Cell[input.length][input[0].length]
         (0..<input.length).each { i ->
             (0..<input[0].length).each { j ->
-                board[i][j] = new Cell(input[i][j])
+                board[i][j] = new Cell(input[i][j], i, j)
             }
         }
     }
 
     Cell[] getRecord(int rowNum) { return board[rowNum] }
 
+    Cell[] getEmptyCellsFromRecord(int rowNum) {
+        return getRecord(rowNum).findAll { it.value == 0 }
+    }
+
     Cell[] getColumn(int colNum) { return (0..<board.length).collect { board[it][colNum] } }
+
+    Cell[] getEmptyCellsFromColumn(int colNum) {
+        return getColumn(colNum).findAll { it.value == 0 }
+    }
 
     Cell[] getSquare(int rowNum, int colNum) {
         int beginRow = rowNum - rowNum % 3
@@ -35,6 +43,10 @@ class Board {
                 board[row][column]
             }
         }.flatten()
+    }
+
+    Cell[] getEmptyCellsFromSquare(int rowNum, int colNum) {
+        return getSquare(rowNum, colNum).findAll { it.value == 0 }
     }
 
     List<Integer> getValuesForColumn(int colNum) {

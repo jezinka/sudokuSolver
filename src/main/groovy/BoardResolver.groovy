@@ -10,7 +10,7 @@ class BoardResolver {
         boolean changed = true
 
         while (this.board.getEmptyCells() && changed) {
-            changed = findOnlyOneCandidate()
+            changed = findOnlyOneCandidate() | findOnlyOnePosition()
         }
 
         println(board)
@@ -28,11 +28,11 @@ class BoardResolver {
         }
     }
 
-    void updateCandidates(int i, int j, int value) {
-        Closure removeValue = { Cell cell -> cell.candidates -= value }
-        board.getRecord(i).each(removeValue)
-        board.getColumn(j).each(removeValue)
-        board.getSquare(i, j).each(removeValue)
+    void updateCandidates(Cell cell) {
+        Closure removeValue = { Cell emptyCell -> emptyCell.candidates -= cell.value }
+        board.getEmptyCellsFromRecord(cell.rowNum).each(removeValue)
+        board.getEmptyCellsFromColumn(cell.colNum).each(removeValue)
+        board.getEmptyCellsFromSquare(cell.rowNum, cell.colNum).each(removeValue)
     }
 
     void removeKnownValuesFromCandidates(int i, int j) {
@@ -50,10 +50,46 @@ class BoardResolver {
                 if (!cell.value && cell.candidates.size() == 1) {
                     int onlyOne = cell.candidates.first()
                     cell.setValue(onlyOne)
-                    updateCandidates(i, j, onlyOne)
+                    updateCandidates(cell)
                     changed = true
                 }
             }
+        }
+        return changed
+    }
+
+    boolean findOnlyOnePosition() {
+        boolean changed = false
+        (0..<board.board.length).each { rowNum ->
+            changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromRecord(rowNum))
+        }
+
+        (0..<board.board[0].length).each { colNum ->
+            changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromColumn(colNum))
+        }
+
+        (0..6).step(3).each { rowNum ->
+            (0..6).step(3).each { colNum ->
+                changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromSquare(rowNum, colNum))
+            }
+        }
+        return changed
+    }
+
+    private boolean findAndSetOnePositionCandidate(Cell[] cells) {
+        boolean changed = false
+        cells.findAll { it.candidates }
+                *.candidates
+                .flatten()
+                .countBy { it }
+                .findAll { it.value == 1 }
+                *.key
+                .each { int value ->
+            Cell cell = cells.find { it.candidates.contains(value) }
+            cell.setValue(value)
+            updateCandidates(cell)
+            changed = true
+
         }
         return changed
     }

@@ -10,7 +10,7 @@ class BoardResolver {
         boolean changed = true
 
         while (this.board.getEmptyCells() && changed) {
-            changed = findOnlyOneCandidate() | findOnlyOnePosition()
+            changed = findOnlyOneCandidate() | findOnlyOnePosition() | findPairs()
         }
 
         println(board)
@@ -78,8 +78,7 @@ class BoardResolver {
 
     private boolean findAndSetOnePositionCandidate(Cell[] cells) {
         boolean changed = false
-        cells.findAll { it.candidates }
-                *.candidates
+        cells*.candidates
                 .flatten()
                 .countBy { it }
                 .findAll { it.value == 1 }
@@ -90,6 +89,39 @@ class BoardResolver {
             updateCandidates(cell)
             changed = true
 
+        }
+        return changed
+    }
+
+    boolean findPairs() {
+        boolean changed = false
+        (0..<board.board.length).each { rowNum ->
+            changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromRecord(rowNum))
+        }
+        (0..<board.board[0].length).each { colNum ->
+            changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromColumn(colNum))
+        }
+
+        (0..6).step(3).each { rowNum ->
+            (0..6).step(3).each { colNum ->
+                changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromSquare(rowNum, colNum))
+            }
+        }
+        return changed
+    }
+
+    boolean findAndRemovePairsCandidates(Cell[] cells) {
+        boolean changed = false
+        cells.findAll { it.candidates.size() == 2 }
+                .groupBy { it.candidates }
+                .findAll { it.value.size() == 2 }
+                .each { List<Integer> k, v ->
+            cells.each { cell ->
+                if (!(cell in v) && cell.candidates.any { k.contains(it) }) {
+                    cell.candidates.removeAll(k)
+                    changed = true
+                }
+            }
         }
         return changed
     }

@@ -76,6 +76,19 @@ class Board {
                 .collect { it as Cell }
     }
 
+    void validate() {
+        (0..8).each {
+            assert getValuesForRecord(it).countBy { it }.every { it.value == 1 }
+            assert getValuesForColumn(it).countBy { it }.every { it.value == 1 }
+        }
+
+        (0..6).step(3).each { rowNum ->
+            (0..6).step(3).each { colNum ->
+                assert getValuesForSquare(rowNum, colNum).countBy { it }.every { it.value == 1 }
+            }
+        }
+    }
+
     @Override
     String toString() {
         return board.collect { it.collect { it.toString() }.join(' ') }.join('\n') + '\n'

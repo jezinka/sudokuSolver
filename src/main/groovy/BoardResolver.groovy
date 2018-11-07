@@ -11,6 +11,7 @@ class BoardResolver {
 
         while (this.board.getEmptyCells() && changed) {
             changed = findOnlyOneCandidate() | findOnlyOnePosition() | findPairs()
+            board.validate()
         }
 
         println(board)

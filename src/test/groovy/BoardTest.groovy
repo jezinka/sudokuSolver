@@ -98,4 +98,19 @@ class BoardTest extends Specification {
         bigBoard.board[8][8].candidates == [1, 6, 8]
 
     }
+
+    def "check two cells in the same square"() {
+        when:
+        Cell cellA = new Cell(9, rowNumA, colNumA)
+        Cell cellB = new Cell(8, rowNumB, colNumB)
+        Cell cellC = new Cell(8, rowNumB, colNumB)
+
+        then:
+        expectedResult == Board.inTheSameSquare([cellA, cellB, cellC])
+
+        where:
+        rowNumA | colNumA | rowNumB | colNumB | rowNumC | colNumC || expectedResult
+        0       | 0       | 0       | 1       | 0       | 2       || true
+        4       | 0       | 0       | 1       | 4       | 8       || false
+    }
 }

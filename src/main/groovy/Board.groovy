@@ -22,6 +22,16 @@ class Board {
         }
     }
 
+    Integer[][] getValues() {
+        Integer[][] values = new Integer[9][9]
+        (0..<board.length).each { i ->
+            (0..<board[0].length).each { j ->
+                values[i][j] = board[i][j].value
+            }
+        }
+        return values
+    }
+
     Cell[] getRecord(int rowNum) { return board[rowNum] }
 
     Cell[] getEmptyCellsFromRecord(int rowNum) {
@@ -74,6 +84,16 @@ class Board {
                 .collect { row -> row.findAll { cell -> cell.value == 0 } }
                 .flatten()
                 .collect { it as Cell }
+    }
+
+    static boolean inTheSameSquare(List<Cell> cells) {
+        cells.collect { getBeginningOfSquare(it) }
+                .unique()
+                .size() == 1
+    }
+
+    private static LinkedHashMap<String, Integer> getBeginningOfSquare(Cell it) {
+        [beginRow: it.rowNum - it.rowNum % 3, beginCol: it.colNum - it.colNum % 3]
     }
 
     void validate() {

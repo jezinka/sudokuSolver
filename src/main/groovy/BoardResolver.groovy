@@ -11,7 +11,7 @@ class BoardResolver {
         boolean changed = true
 
         while (this.board.getEmptyCells() && changed) {
-            changed = findOnlyOneCandidate() || findOnlyOnePosition() || findPairs() || findBlockedCandidatesRecord() || findBlockedCandidatesSquare()
+            changed = findOnlyOneCandidate() || findOnlyOnePosition() || findGroups() || findBlockedCandidatesRecord() || findBlockedCandidatesSquare()
             board.validate()
         }
         println board.emptyCells.size()
@@ -95,28 +95,31 @@ class BoardResolver {
         return changed
     }
 
-    boolean findPairs() {
+    boolean findGroups() {
         boolean changed = false
-        (0..<board.board.length).each { rowNum ->
-            changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromRecord(rowNum))
-        }
-        (0..<board.board[0].length).each { colNum ->
-            changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromColumn(colNum))
-        }
+        (2..4).each { int groupSize ->
+            (0..<board.board.length).each { rowNum ->
+                changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromRecord(rowNum), groupSize)
+            }
+            (0..<board.board[0].length).each { colNum ->
+                changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromColumn(colNum), groupSize)
+            }
 
-        (0..6).step(3).each { rowNum ->
-            (0..6).step(3).each { colNum ->
-                changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromSquare(rowNum, colNum))
+            (0..6).step(3).each { rowNum ->
+                (0..6).step(3).each { colNum ->
+                    changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromSquare(rowNum, colNum), groupSize)
+                }
             }
         }
+
         return changed
     }
 
-    boolean findAndRemovePairsCandidates(Cell[] cells) {
+    boolean findAndRemoveGroupCandidates(Cell[] cells, int groupSize) {
         boolean changed = false
-        cells.findAll { it.candidates.size() == 2 }
+        cells.findAll { it.candidates.size() == groupSize }
                 .groupBy { it.candidates }
-                .findAll { it.value.size() == 2 }
+                .findAll { it.value.size() == groupSize }
                 .each { List<Integer> k, v ->
             cells.each { cell ->
                 if (!(cell in v) && cell.candidates.any { k.contains(it) }) {
@@ -157,7 +160,7 @@ class BoardResolver {
         boolean changed = false
         (0..6).step(3).each { rowNum ->
             (0..6).step(3).each { colNum ->
-                changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromSquare(rowNum, colNum))
+                changed = changed | findAndRemoveBlockedCandidatesSquare(board.getEmptyCellsFromSquare(rowNum, colNum))
             }
         }
         return changed

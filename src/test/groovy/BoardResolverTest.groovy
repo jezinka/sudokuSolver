@@ -29,7 +29,7 @@ class BoardResolverTest extends Specification {
     def "findPairs test"() {
         when:
         boardResolver.fillCandidates()
-        boardResolver.findAndRemovePairsCandidates(bigBoard.getEmptyCellsFromRecord(3))
+        boardResolver.findAndRemoveGroupCandidates(bigBoard.getEmptyCellsFromRecord(3), 2)
 
         then:
         bigBoard.getEmptyCellsFromRecord(3)*.candidates.findAll { it.contains(4) || it.contains(9) }.size() == 2

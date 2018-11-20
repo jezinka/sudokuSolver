@@ -11,7 +11,7 @@ class BoardResolver {
         boolean changed = true
 
         while (this.board.getEmptyCells() && changed) {
-            changed = findOnlyOneCandidate() | findOnlyOnePosition() | findPairs() | findBlockedCandidatesRecord()
+            changed = findOnlyOneCandidate() || findOnlyOnePosition() || findPairs() || findBlockedCandidatesRecord() || findBlockedCandidatesSquare()
             board.validate()
         }
         println board.emptyCells.size()
@@ -131,19 +131,45 @@ class BoardResolver {
     boolean findBlockedCandidatesRecord() {
         boolean changed = false
         (0..<board.board.length).each { rowNum ->
-            changed = changed | findAndRemoveBlockedCandidates(board.getEmptyCellsFromRecord(rowNum))
+            changed = changed | findAndRemoveBlockedCandidatesRecord(board.getEmptyCellsFromRecord(rowNum))
         }
         return changed
     }
 
-    boolean findAndRemoveBlockedCandidates(Cell[] cells) {
+    boolean findAndRemoveBlockedCandidatesRecord(Cell[] cells) {
         boolean changed = false
         cells*.candidates.flatten().unique().each { int candidate ->
             List<Cell> cellsWithCandidate = cells.findAll { it.candidates.contains(candidate) }
             if (board.inTheSameSquare(cellsWithCandidate)) {
                 Cell firstFit = cellsWithCandidate.first()
-                List<Cell> emptyCells = board
-                        .getEmptyCellsFromSquare(firstFit.rowNum, firstFit.colNum)
+                board.getEmptyCellsFromSquare(firstFit.rowNum, firstFit.colNum)
+                        .findAll { it.candidates.contains(candidate) && !(it in cells) }
+                        .each { Cell cell ->
+                    cell.candidates -= candidate
+                    changed = true
+                }
+            }
+        }
+        return changed
+    }
+
+    boolean findBlockedCandidatesSquare() {
+        boolean changed = false
+        (0..6).step(3).each { rowNum ->
+            (0..6).step(3).each { colNum ->
+                changed = changed | findAndRemovePairsCandidates(board.getEmptyCellsFromSquare(rowNum, colNum))
+            }
+        }
+        return changed
+    }
+
+    boolean findAndRemoveBlockedCandidatesSquare(Cell[] cells) {
+        boolean changed = false
+        cells*.candidates.flatten().unique().each { int candidate ->
+            List<Cell> cellsWithCandidate = cells.findAll { it.candidates.contains(candidate) }
+            if (board.inTheSameColumn(cellsWithCandidate)) {
+                Cell firstFit = cellsWithCandidate.first()
+                board.getEmptyCellsFromColumn(firstFit.colNum)
                         .findAll { it.candidates.contains(candidate) && !(it in cells) }
                         .each { Cell cell ->
                     cell.candidates -= candidate

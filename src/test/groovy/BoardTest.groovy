@@ -90,15 +90,6 @@ class BoardTest extends Specification {
         8 | 8 || [5]
     }
 
-    def "fill candidates test"() {
-        expect:
-        bigBoard.board.flatten().every { Cell it -> it.candidates.size() > 0 || it.value }
-        bigBoard.board[1][0].candidates == []
-        bigBoard.board[0][0].candidates == [1, 5, 7]
-        bigBoard.board[8][8].candidates == [1, 6, 8]
-
-    }
-
     def "check two cells in the same square"() {
         when:
         Cell cellA = new Cell(9, rowNumA, colNumA)

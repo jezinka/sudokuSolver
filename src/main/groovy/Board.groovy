@@ -92,6 +92,10 @@ class Board {
                 .size() == 1
     }
 
+    static boolean inTheSameColumn(ArrayList<Cell> cellsWithCandidate) {
+        cellsWithCandidate.collect { it.colNum }.unique().size() == 1
+    }
+
     private static LinkedHashMap<String, Integer> getBeginningOfSquare(Cell it) {
         [beginRow: it.rowNum - it.rowNum % 3, beginCol: it.colNum - it.colNum % 3]
     }

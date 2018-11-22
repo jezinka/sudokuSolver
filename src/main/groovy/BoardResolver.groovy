@@ -63,16 +63,16 @@ class BoardResolver {
     boolean findOnlyOnePosition() {
         boolean changed = false
         (0..<board.board.length).each { rowNum ->
-            changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromRecord(rowNum))
+            changed = findAndSetOnePositionCandidate(board.getEmptyCellsFromRecord(rowNum)) || changed
         }
 
         (0..<board.board[0].length).each { colNum ->
-            changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromColumn(colNum))
+            changed = findAndSetOnePositionCandidate(board.getEmptyCellsFromColumn(colNum)) || changed
         }
 
         (0..6).step(3).each { rowNum ->
             (0..6).step(3).each { colNum ->
-                changed = changed | findAndSetOnePositionCandidate(board.getEmptyCellsFromSquare(rowNum, colNum))
+                changed = findAndSetOnePositionCandidate(board.getEmptyCellsFromSquare(rowNum, colNum)) || changed
             }
         }
         return changed
@@ -99,15 +99,15 @@ class BoardResolver {
         boolean changed = false
         (2..4).each { int groupSize ->
             (0..<board.board.length).each { rowNum ->
-                changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromRecord(rowNum), groupSize)
+                changed = findAndRemoveGroupCandidates(board.getEmptyCellsFromRecord(rowNum), groupSize) || changed
             }
             (0..<board.board[0].length).each { colNum ->
-                changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromColumn(colNum), groupSize)
+                changed = findAndRemoveGroupCandidates(board.getEmptyCellsFromColumn(colNum), groupSize) || changed
             }
 
             (0..6).step(3).each { rowNum ->
                 (0..6).step(3).each { colNum ->
-                    changed = changed | findAndRemoveGroupCandidates(board.getEmptyCellsFromSquare(rowNum, colNum), groupSize)
+                    changed = findAndRemoveGroupCandidates(board.getEmptyCellsFromSquare(rowNum, colNum), groupSize) || changed
                 }
             }
         }
@@ -117,24 +117,26 @@ class BoardResolver {
 
     boolean findAndRemoveGroupCandidates(Cell[] cells, int groupSize) {
         boolean changed = false
-        cells.findAll { it.candidates.size() == groupSize }
-                .groupBy { it.candidates }
-                .findAll { it.value.size() == groupSize }
-                .each { List<Integer> k, v ->
+        cells.toList().subsequences()
+                .findAll { it.size() == groupSize }
+                .findAll { it.candidates.flatten().unique().size() == groupSize }
+                .each { nakedGroup ->
+            List<Integer> nakedGroupCandidates = nakedGroup.candidates.flatten().unique().collect { it as Integer }
             cells.each { cell ->
-                if (!(cell in v) && cell.candidates.any { k.contains(it) }) {
-                    cell.candidates.removeAll(k)
+                if (!nakedGroup.contains(cell) && cell.candidates.any { nakedGroupCandidates.contains(it) }) {
+                    cell.candidates.removeAll(nakedGroupCandidates)
                     changed = true
                 }
             }
         }
+
         return changed
     }
 
     boolean findBlockedCandidatesRecord() {
         boolean changed = false
         (0..<board.board.length).each { rowNum ->
-            changed = changed | findAndRemoveBlockedCandidatesRecord(board.getEmptyCellsFromRecord(rowNum))
+            changed = findAndRemoveBlockedCandidatesRecord(board.getEmptyCellsFromRecord(rowNum)) || changed
         }
         return changed
     }
@@ -160,7 +162,7 @@ class BoardResolver {
         boolean changed = false
         (0..6).step(3).each { rowNum ->
             (0..6).step(3).each { colNum ->
-                changed = changed | findAndRemoveBlockedCandidatesSquare(board.getEmptyCellsFromSquare(rowNum, colNum))
+                changed = findAndRemoveBlockedCandidatesSquare(board.getEmptyCellsFromSquare(rowNum, colNum)) || changed
             }
         }
         return changed

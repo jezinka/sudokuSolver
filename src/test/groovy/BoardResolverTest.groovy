@@ -17,22 +17,47 @@ class BoardResolverTest extends Specification {
 
         bigBoard = new Board(input)
         boardResolver = new BoardResolver(bigBoard)
+        boardResolver.fillCandidates()
     }
 
     def "fill candidates test"() {
         expect:
-        boardResolver.fillCandidates()
         bigBoard.board.flatten().every { Cell it -> it.candidates.size() > 0 || it.value }
 
     }
 
-    def "findPairs test"() {
+    def "find naked groups 2"() {
         when:
-        boardResolver.fillCandidates()
+        assert bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.contains(4) || it.candidates.contains(9) } == 4
         boardResolver.findAndRemoveGroupCandidates(bigBoard.getEmptyCellsFromRecord(3), 2)
 
         then:
-        bigBoard.getEmptyCellsFromRecord(3)*.candidates.findAll { it.contains(4) || it.contains(9) }.size() == 2
+        bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.contains(4) || it.candidates.contains(9) } == 2
+    }
+
+    def "find naked groups 3"() {
+        given:
+        Board board = new Board([[6, 0, 0, 8, 0, 2, 7, 3, 5],
+                                 [7, 0, 2, 3, 5, 6, 9, 4, 0],
+                                 [3, 0, 0, 4, 0, 7, 0, 6, 2],
+                                 [1, 0, 0, 9, 7, 5, 0, 2, 4],
+                                 [2, 0, 0, 1, 8, 3, 0, 7, 9],
+                                 [0, 7, 9, 6, 2, 4, 0, 0, 3],
+                                 [4, 0, 0, 5, 6, 0, 2, 0, 7],
+                                 [0, 6, 7, 2, 4, 0, 3, 0, 0],
+                                 [9, 2, 0, 7, 3, 8, 4, 0, 6]] as Integer[][])
+
+        BoardResolver boardResolver = new BoardResolver(board)
+        boardResolver.fillCandidates()
+        when:
+        assert board.getEmptyCellsFromColumn(1)
+                .count { it.candidates.contains(1) || it.candidates.contains(3) || it.candidates.contains(8) } == 5
+
+        boardResolver.findAndRemoveGroupCandidates(board.getEmptyCellsFromColumn(1), 3)
+
+        then:
+        board.getEmptyCellsFromColumn(1)
+                .count { it.candidates.contains(1) || it.candidates.contains(3) || it.candidates.contains(8) } == 3
     }
 
     def "blocked candidates record -> square"() {

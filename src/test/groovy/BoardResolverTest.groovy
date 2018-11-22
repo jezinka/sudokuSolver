@@ -27,12 +27,14 @@ class BoardResolverTest extends Specification {
     }
 
     def "find naked groups 2"() {
+        given:
+        List<Integer> nakedCandidates = [4, 9]
         when:
-        assert bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.contains(4) || it.candidates.contains(9) } == 4
+        assert bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.intersect(nakedCandidates) } == 4
         boardResolver.findAndRemoveGroupCandidates(bigBoard.getEmptyCellsFromRecord(3), 2)
 
         then:
-        bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.contains(4) || it.candidates.contains(9) } == 2
+        bigBoard.getEmptyCellsFromRecord(3).count { it.candidates.intersect(nakedCandidates) } == 2
     }
 
     def "find naked groups 3"() {
@@ -49,15 +51,43 @@ class BoardResolverTest extends Specification {
 
         BoardResolver boardResolver = new BoardResolver(board)
         boardResolver.fillCandidates()
+        List<Integer> nakedCandidates = [1, 3, 8]
         when:
         assert board.getEmptyCellsFromColumn(1)
-                .count { it.candidates.contains(1) || it.candidates.contains(3) || it.candidates.contains(8) } == 5
+                .count { it.candidates.intersect(nakedCandidates) } == 5
 
         boardResolver.findAndRemoveGroupCandidates(board.getEmptyCellsFromColumn(1), 3)
 
         then:
         board.getEmptyCellsFromColumn(1)
-                .count { it.candidates.contains(1) || it.candidates.contains(3) || it.candidates.contains(8) } == 3
+                .count { it.candidates.intersect(nakedCandidates) } == 3
+    }
+
+    def "find naked groups 4"() {
+        given:
+        Board board = new Board([[0, 9, 5, 0, 0, 0, 0, 0, 7],
+                                 [7, 1, 2, 0, 4, 0, 0, 0, 6],
+                                 [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                 [0, 4, 0, 0, 1, 0, 0, 0, 0],
+                                 [0, 0, 1, 9, 0, 7, 2, 0, 4],
+                                 [2, 0, 0, 4, 6, 8, 0, 1, 9],
+                                 [0, 2, 0, 0, 0, 6, 0, 0, 5],
+                                 [0, 0, 0, 0, 0, 0, 9, 0, 2],
+                                 [0, 8, 0, 5, 0, 0, 0, 7, 1]] as Integer[][])
+
+        BoardResolver boardResolver = new BoardResolver(board)
+        boardResolver.fillCandidates()
+        List<Integer> nakedCandidates = [3, 4, 6, 8]
+        when:
+        assert board.getEmptyCellsFromRecord(2).count { it.candidates.intersect(nakedCandidates) } == 9
+
+        boardResolver.findAndRemoveGroupCandidates(board.getEmptyCellsFromRecord(2), 4)
+
+        then:
+        board.getEmptyCellsFromRecord(2)
+                .count {
+            it.candidates.contains(3) || it.candidates.contains(4) || it.candidates.contains(6) || it.candidates.contains(8)
+        } == 4
     }
 
     def "blocked candidates record -> square"() {

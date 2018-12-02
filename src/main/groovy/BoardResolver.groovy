@@ -11,7 +11,7 @@ class BoardResolver {
         boolean changed = true
 
         while (this.board.getEmptyCells() && changed) {
-            changed = findOnlyOneCandidate() || findOnlyOnePosition() || findGroups() || findBlockedCandidatesRecord() || findBlockedCandidatesSquare()
+            changed = findOnlyOneCandidate() || findOnlyOnePosition() || findGroups() || findBlockedCandidatesRecord() || findBlockedCandidatesSquare() || findHiddenGroups()
             board.validate()
         }
         println board.emptyCells.size()
@@ -182,6 +182,51 @@ class BoardResolver {
                 }
             }
         }
+        return changed
+    }
+
+
+    boolean findHiddenGroups() {
+        boolean changed = false
+        (2..4).each { int groupSize ->
+            (0..<board.board.length).each { rowNum ->
+                changed = findAndRemoveHiddenGroupCandidates(board.getEmptyCellsFromRecord(rowNum), groupSize) || changed
+            }
+            (0..<board.board[0].length).each { colNum ->
+                changed = findAndRemoveHiddenGroupCandidates(board.getEmptyCellsFromColumn(colNum), groupSize) || changed
+            }
+
+            (0..6).step(3).each { rowNum ->
+                (0..6).step(3).each { colNum ->
+                    changed = findAndRemoveHiddenGroupCandidates(board.getEmptyCellsFromSquare(rowNum, colNum), groupSize) || changed
+                }
+            }
+        }
+
+        return changed
+    }
+
+    boolean findAndRemoveHiddenGroupCandidates(Cell[] cells, int groupSize) {
+        boolean changed = false
+
+        List<Integer> candidatesList = cells*.candidates.flatten().unique()
+        def groups = candidatesList.subsequences().findAll { it.size() == groupSize }
+
+        groups.each { group ->
+            List<Cell> potentialCells = cells.findAll { it.candidates.any { group.contains(it) } }
+            if (potentialCells.size() == groupSize) {
+                cells.each { cell ->
+                    if (cell.candidates.any { group.contains(it) }) {
+                        List<Integer> difference = cell.candidates - group
+                        if (difference) {
+                            cell.candidates -= difference
+                            changed = true
+                        }
+                    }
+                }
+            }
+        }
+
         return changed
     }
 }

@@ -134,4 +134,50 @@ class BoardResolverTest extends Specification {
         board.getEmptyCellsFromColumn(6).findAll { it.candidates.contains(2) }.size() == 2
     }
 
+    def "hidden candidate with group of 2"() {
+        given:
+        Board board = new Board([[8, 0, 1, 0, 0, 6, 0, 9, 4],
+                                 [3, 0, 0, 0, 0, 9, 0, 8, 0],
+                                 [9, 7, 0, 0, 8, 0, 5, 0, 0],
+                                 [5, 4, 7, 0, 6, 2, 0, 3, 0],
+                                 [6, 3, 2, 0, 0, 0, 0, 5, 0],
+                                 [1, 9, 8, 3, 7, 5, 2, 4, 6],
+                                 [0, 8, 3, 6, 2, 0, 9, 1, 5],
+                                 [0, 6, 5, 1, 9, 8, 0, 0, 0],
+                                 [2, 1, 9, 5, 0, 0, 0, 0, 8]] as Integer[][])
+
+
+        BoardResolver boardResolver = new BoardResolver(board)
+        boardResolver.fillCandidates()
+        when:
+        boardResolver.findAndRemoveHiddenGroupCandidates(board.getEmptyCellsFromRecord(2), 2)
+
+        then:
+        board.board[2][5].candidates == [1, 3]
+        board.board[2][8].candidates == [1, 3]
+    }
+
+    def "hidden candidate with group of 3"() {
+        given:
+        Board board = new Board([[0, 0, 0, 0, 0, 1, 0, 3, 0],
+                                 [2, 3, 1, 0, 9, 0, 0, 0, 0],
+                                 [0, 6, 5, 0, 0, 3, 1, 0, 0],
+                                 [6, 7, 8, 9, 2, 4, 3, 0, 0],
+                                 [1, 0, 3, 0, 5, 0, 0, 0, 6],
+                                 [0, 0, 0, 1, 3, 6, 7, 0, 0],
+                                 [0, 0, 9, 3, 6, 0, 5, 7, 0],
+                                 [0, 0, 6, 0, 1, 9, 8, 4, 3],
+                                 [3, 0, 0, 0, 0, 0, 0, 0, 0]] as Integer[][])
+
+
+        BoardResolver boardResolver = new BoardResolver(board)
+        boardResolver.fillCandidates()
+        when:
+        boardResolver.findAndRemoveHiddenGroupCandidates(board.getEmptyCellsFromRecord(0), 3)
+
+        then:
+        board.board[0][3].candidates == [2, 5, 6]
+        board.board[0][6].candidates == [2, 6]
+        board.board[0][8].candidates == [2, 5]
+    }
 }
